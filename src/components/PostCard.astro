@@ -1,0 +1,110 @@
+---
+interface Props {
+  post: any;
+}
+
+const { post } = Astro.props;
+const { title, date, location, cover, tags } = post.data;
+
+const formattedDate = new Date(date).toLocaleDateString('zh-TW', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+---
+
+<article class="post-card">
+  <a href={`/travel-journal/posts/${post.slug}`}>
+    {cover && (
+      <div class="post-image">
+        <img src={cover} alt={title} />
+      </div>
+    )}
+    <div class="post-info">
+      <h3>{title}</h3>
+      <div class="post-meta">
+        <span class="date">{formattedDate}</span>
+        <span class="location">📍 {location}</span>
+      </div>
+      {tags && tags.length > 0 && (
+        <div class="tags">
+          {tags.slice(0, 3).map((tag: string) => (
+            <span class="tag">#{tag}</span>
+          ))}
+        </div>
+      )}
+    </div>
+  </a>
+</article>
+
+<style>
+  .post-card {
+    background: white;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+
+  .post-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
+
+  .post-card a {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+
+  .post-image {
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+  }
+
+  .post-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+  }
+
+  .post-card:hover .post-image img {
+    transform: scale(1.05);
+  }
+
+  .post-info {
+    padding: 1.5rem;
+  }
+
+  .post-info h3 {
+    font-size: 1.4rem;
+    margin-bottom: 0.75rem;
+    color: #333;
+  }
+
+  .post-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+    color: #666;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+
+  .tag {
+    background: #e9ecef;
+    color: #495057;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.5rem;
+    font-size: 0.85rem;
+  }
+</style>

@@ -1,0 +1,71 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getCollection } from 'astro:content';
+
+const allPosts = await getCollection('posts');
+const publishedPosts = allPosts
+  .filter(post => !post.data.draft)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+
+<Layout title="所有遊記 - 旅行日記">
+  <div class="posts-header">
+    <h1>所有遊記</h1>
+    <p>共 {publishedPosts.length} 篇遊記</p>
+  </div>
+
+  <div class="posts-grid">
+    {publishedPosts.map((post) => (
+      <PostCard post={post} />
+    ))}
+  </div>
+
+  {publishedPosts.length === 0 && (
+    <div class="no-posts">
+      <p>還沒有遊記，敬請期待！</p>
+    </div>
+  )}
+</Layout>
+
+<style>
+  .posts-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .posts-header h1 {
+    font-size: 2.5rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+  }
+
+  .posts-header p {
+    color: #666;
+    font-size: 1.1rem;
+  }
+
+  .posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+  }
+
+  .no-posts {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: #666;
+    font-size: 1.2rem;
+  }
+
+  @media (max-width: 768px) {
+    .posts-header h1 {
+      font-size: 2rem;
+    }
+
+    .posts-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

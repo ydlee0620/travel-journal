@@ -1,0 +1,156 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="關於 - 旅行日記">
+  <div class="about-page">
+    <h1>關於這個旅行日記</h1>
+    
+    <div class="about-content">
+      <section>
+        <h2>✈️ 旅行的意義</h2>
+        <p>
+          旅行不僅僅是從一個地方到另一個地方，更是一種探索世界、認識自己的方式。
+          這個日記記錄著我走過的每一個地方、遇見的每一個風景、體驗的每一個瞬間。
+        </p>
+      </section>
+
+      <section>
+        <h2>📸 關於我</h2>
+        <p>
+          我是一位熱愛旅行的記錄者，喜歡用文字和照片分享旅途中的點點滴滴。
+          從台灣的山海到世界的各個角落，每一次旅行都是一次全新的體驗。
+        </p>
+      </section>
+
+      <section>
+        <h2>📝 這個網站</h2>
+        <p>
+          這是一個個人旅行日記網站，使用現代化的網頁技術構建，
+          簡潔、快速、響應式設計讓您在任何設備上都能舒適地閱讀遊記。
+        </p>
+        <p>
+          如果你也喜歡旅行，希望這些記錄能給你一些靈感和參考。
+        </p>
+      </section>
+
+      <section>
+        <h2>📬 聯絡方式</h2>
+        <p>
+          如果你有任何問題或想法，歡迎透過以下方式聯絡：
+        </p>
+        <ul>
+          <li>GitHub: <a href="https://github.com/ydlee0620" target="_blank">@ydlee0620</a></li>
+          <li>Email: 你的電子郵件地址</li>
+        </ul>
+      </section>
+    </div>
+
+    <div class="back-home">
+      <a href="/travel-journal/" class="button">← 返回首頁</a>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .about-page {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .about-page h1 {
+    font-size: 2.5rem;
+    color: #333;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+
+  .about-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .about-content section {
+    margin-bottom: 2.5rem;
+  }
+
+  .about-content section:last-child {
+    margin-bottom: 0;
+  }
+
+  .about-content h2 {
+    font-size: 1.8rem;
+    color: #667eea;
+    margin-bottom: 1rem;
+  }
+
+  .about-content p {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #555;
+    margin-bottom: 1rem;
+  }
+
+  .about-content ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .about-content li {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #555;
+    margin-bottom: 0.5rem;
+  }
+
+  .about-content a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .about-content a:hover {
+    text-decoration: underline;
+  }
+
+  .back-home {
+    text-align: center;
+    margin-top: 3rem;
+  }
+
+  .button {
+    display: inline-block;
+    padding: 0.75rem 2rem;
+    background: #667eea;
+    color: white;
+    text-decoration: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: background 0.3s;
+  }
+
+  .button:hover {
+    background: #5568d3;
+  }
+
+  @media (max-width: 768px) {
+    .about-page h1 {
+      font-size: 2rem;
+    }
+
+    .about-content {
+      padding: 1.5rem;
+    }
+
+    .about-content h2 {
+      font-size: 1.5rem;
+    }
+
+    .about-content p,
+    .about-content li {
+      font-size: 1rem;
+    }
+  }
+</style>
