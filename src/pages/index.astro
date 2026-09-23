@@ -1,0 +1,152 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PostCard from '../components/PostCard.astro';
+import { getCollection } from 'astro:content';
+
+const allPosts = await getCollection('posts');
+const publishedPosts = allPosts
+  .filter(post => !post.data.draft)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const latestPosts = publishedPosts.slice(0, 3);
+---
+
+<Layout title="旅行日記 - 記錄每一段旅程">
+  <div class="hero">
+    <h1>✈️ 我的旅行日記</h1>
+    <p class="hero-subtitle">記錄每一段旅程的美好時光</p>
+  </div>
+
+  <section class="featured">
+    <h2>最新遊記</h2>
+    <div class="posts-grid">
+      {latestPosts.map((post) => (
+        <PostCard post={post} />
+      ))}
+    </div>
+    <div class="view-all">
+      <a href="/travel-journal/posts" class="button">查看所有遊記 →</a>
+    </div>
+  </section>
+
+  <section class="about-preview">
+    <h2>關於這個旅行日記</h2>
+    <p>
+      這是我個人的旅行日記，記錄著走過的每一個地方、遇見的每一個風景。
+      從台灣的山海到世界的各個角落，每一次旅行都是一次全新的體驗。
+    </p>
+    <a href="/travel-journal/about" class="button-secondary">了解更多 →</a>
+  </section>
+</Layout>
+
+<style>
+  .hero {
+    text-align: center;
+    padding: 4rem 1rem 3rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 1rem;
+    margin-bottom: 3rem;
+  }
+
+  .hero h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+  }
+
+  .hero-subtitle {
+    font-size: 1.2rem;
+    opacity: 0.95;
+  }
+
+  .featured {
+    margin-bottom: 4rem;
+  }
+
+  .featured h2 {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    color: #333;
+  }
+
+  .posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .view-all {
+    text-align: center;
+  }
+
+  .about-preview {
+    padding: 3rem;
+    background: #f8f9fa;
+    border-radius: 1rem;
+    text-align: center;
+  }
+
+  .about-preview h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: #333;
+  }
+
+  .about-preview p {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+    color: #555;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .button {
+    display: inline-block;
+    padding: 0.75rem 2rem;
+    background: #667eea;
+    color: white;
+    text-decoration: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: background 0.3s;
+  }
+
+  .button:hover {
+    background: #5568d3;
+  }
+
+  .button-secondary {
+    display: inline-block;
+    padding: 0.75rem 2rem;
+    background: transparent;
+    color: #667eea;
+    text-decoration: none;
+    border: 2px solid #667eea;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: all 0.3s;
+  }
+
+  .button-secondary:hover {
+    background: #667eea;
+    color: white;
+  }
+
+  @media (max-width: 768px) {
+    .hero h1 {
+      font-size: 2rem;
+    }
+
+    .posts-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .about-preview {
+      padding: 2rem 1rem;
+    }
+  }
+</style>
