@@ -3,14 +3,21 @@ import Layout from '../../layouts/Layout.astro';
 import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
-  const posts = await getCollection('posts');
-  return posts.map((post) => ({
+  const all = await getCollection('posts');
+  const posts = all
+    .filter((p) => !p.data.draft)
+    .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+  return posts.map((post, i) => ({
     params: { slug: post.slug },
-    props: { post },
+    props: {
+      post,
+      newer: i > 0 ? posts[i - 1] : null,
+      older: i < posts.length - 1 ? posts[i + 1] : null,
+    },
   }));
 }
 
-const { post } = Astro.props;
+const { post, newer, older } = Astro.props;
 const { Content } = await post.render();
 const { title, date, location, cover, tags } = post.data;
 
@@ -21,125 +28,230 @@ const formattedDate = new Date(date).toLocaleDateString('zh-TW', {
 });
 ---
 
-<Layout title={`${title} - 旅行日記`}>
+<Layout title={`${title} - 旅行日記`} transparentHeader={Boolean(cover)}>
   <article class="post">
-    <div class="post-header">
-      {cover && (
-        <img src={cover} alt={title} class="cover-image" />
-      )}
-      <h1>{title}</h1>
-      <div class="post-meta">
-        <span class="date">📅 {formattedDate}</span>
-        <span class="location">📍 {location}</span>
-      </div>
+    {cover ? (
+      <header class="cover" style={`background-image: url(${cover})`}>
+        <div class="cover-shade"></div>
+        <div class="cover-text">
+          <p class="kicker">{formattedDate} · {location}</p>
+          <h1>{title}</h1>
+        </div>
+      </header>
+    ) : (
+      <header class="cover plain">
+        <div class="cover-text dark">
+          <p class="kicker">{formattedDate} · {location}</p>
+          <h1>{title}</h1>
+        </div>
+      </header>
+    )}
+
+    <div class="body">
       {tags && tags.length > 0 && (
         <div class="tags">
           {tags.map((tag: string) => (
-            <span class="tag">#{tag}</span>
+            <a class="tag" href={`/travel-journal/tags/${encodeURIComponent(tag)}`}>#{tag}</a>
           ))}
         </div>
       )}
-    </div>
 
-    <div class="post-content">
-      <Content />
-    </div>
+      <div class="post-content">
+        <Content />
+      </div>
 
-    <div class="post-footer">
-      <a href="/travel-journal/posts" class="back-link">← 返回所有遊記</a>
+      <nav class="pager">
+        {older ? (
+          <a class="pager-link" href={`/travel-journal/posts/${older.slug}`}>
+            <span class="label">← 上一篇</span>
+            <span class="t">{older.data.title}</span>
+          </a>
+        ) : <span></span>}
+        {newer ? (
+          <a class="pager-link right" href={`/travel-journal/posts/${newer.slug}`}>
+            <span class="label">下一篇 →</span>
+            <span class="t">{newer.data.title}</span>
+          </a>
+        ) : <span></span>}
+      </nav>
+
+      <p class="back"><a href="/travel-journal/posts">返回所有遊記</a></p>
     </div>
   </article>
+
+  <dialog id="lightbox">
+    <img alt="" />
+    <p class="cap"></p>
+  </dialog>
 </Layout>
 
+<script>
+  // Wrap body images in <figure> with the alt text as caption,
+  // lay out consecutive images side by side, and open them in a lightbox.
+  const root = document.querySelector('.post-content');
+  if (root) {
+    const paras = Array.from(root.querySelectorAll(':scope > p')).filter(
+      (p) => p.children.length === 1 && p.firstElementChild?.tagName === 'IMG' && !p.textContent?.trim()
+    );
+
+    const toFigure = (p: Element) => {
+      const img = p.firstElementChild as HTMLImageElement;
+      const fig = document.createElement('figure');
+      img.loading = 'lazy';
+      fig.appendChild(img);
+      if (img.alt) {
+        const cap = document.createElement('figcaption');
+        cap.textContent = img.alt;
+        fig.appendChild(cap);
+      }
+      return fig;
+    };
+
+    let i = 0;
+    while (i < paras.length) {
+      const a = paras[i];
+      const b = paras[i + 1];
+      // adjacent siblings => a pair
+      if (b && a.nextElementSibling === b) {
+        const row = document.createElement('div');
+        row.className = 'pair';
+        row.appendChild(toFigure(a));
+        row.appendChild(toFigure(b));
+        a.replaceWith(row);
+        b.remove();
+        i += 2;
+      } else {
+        const wrap = document.createElement('div');
+        wrap.className = 'single';
+        const fig = toFigure(a);
+        wrap.appendChild(fig);
+        a.replaceWith(wrap);
+        const im = fig.querySelector('img') as HTMLImageElement;
+        const mark = () => {
+          if (im.naturalHeight > im.naturalWidth) wrap.classList.add('portrait');
+        };
+        if (im.complete) mark();
+        else im.addEventListener('load', mark);
+        i += 1;
+      }
+    }
+
+    const box = document.getElementById('lightbox') as HTMLDialogElement | null;
+    const boxImg = box?.querySelector('img');
+    const boxCap = box?.querySelector('.cap');
+    root.querySelectorAll('figure img').forEach((el) => {
+      el.addEventListener('click', () => {
+        const img = el as HTMLImageElement;
+        if (!box || !boxImg || !boxCap) return;
+        boxImg.src = img.src;
+        boxImg.alt = img.alt;
+        boxCap.textContent = img.alt;
+        box.showModal();
+      });
+    });
+    box?.addEventListener('click', () => box.close());
+  }
+</script>
+
 <style>
-  .post {
-    max-width: 800px;
-    margin: 0 auto;
+  .cover {
+    position: relative;
+    min-height: 70vh;
+    display: flex;
+    align-items: flex-end;
+    background-color: var(--dark);
+    background-size: cover;
+    background-position: center;
+    color: #fff;
   }
 
-  .post-header {
-    margin-bottom: 3rem;
+  .cover.plain {
+    min-height: 0;
+    background: none;
+    color: var(--ink);
+    padding-top: 6rem;
   }
 
-  .cover-image {
+  .cover-shade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(20, 15, 12, 0.8) 0%, rgba(20, 15, 12, 0.2) 55%, rgba(20, 15, 12, 0.35) 100%);
+  }
+
+  .cover-text {
+    position: relative;
+    max-width: 760px;
     width: 100%;
-    height: 400px;
-    object-fit: cover;
-    border-radius: 1rem;
-    margin-bottom: 2rem;
+    margin: 0 auto;
+    padding: 0 1.5rem 3rem;
   }
 
-  .post-header h1 {
-    font-size: 2.5rem;
-    color: #333;
-    margin-bottom: 1rem;
+  .kicker {
+    font-size: 0.9rem;
+    letter-spacing: 0.15em;
+    opacity: 0.9;
+    margin-bottom: 0.7rem;
+  }
+
+  .cover h1 {
+    font-family: var(--serif);
+    font-size: clamp(1.8rem, 4.5vw, 3rem);
     line-height: 1.3;
   }
 
-  .post-meta {
-    display: flex;
-    gap: 2rem;
-    margin-bottom: 1rem;
-    color: #666;
-    font-size: 1rem;
-  }
-
-  .post-meta span {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+  .body {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 1rem;
   }
 
   .tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 1rem;
+    gap: 0.6rem;
+    margin-bottom: 2rem;
   }
 
   .tag {
-    background: #e9ecef;
-    color: #495057;
-    padding: 0.25rem 0.75rem;
-    border-radius: 1rem;
+    color: var(--accent);
+    text-decoration: none;
     font-size: 0.9rem;
+    border: 1px solid var(--line);
+    padding: 0.15rem 0.8rem;
+    border-radius: 2rem;
+  }
+
+  .tag:hover {
+    border-color: var(--accent);
   }
 
   .post-content {
     font-size: 1.1rem;
-    line-height: 1.8;
-    color: #333;
+    line-height: 1.95;
   }
 
   .post-content :global(h2) {
-    font-size: 1.8rem;
-    margin-top: 2.5rem;
-    margin-bottom: 1rem;
-    color: #333;
+    font-family: var(--serif);
+    font-size: 1.6rem;
+    margin: 3rem 0 1rem;
+    padding-left: 0.9rem;
+    border-left: 3px solid var(--accent);
   }
 
   .post-content :global(h3) {
-    font-size: 1.4rem;
-    margin-top: 2rem;
-    margin-bottom: 0.75rem;
-    color: #444;
+    font-family: var(--serif);
+    font-size: 1.3rem;
+    margin: 2rem 0 0.75rem;
   }
 
   .post-content :global(p) {
     margin-bottom: 1.5rem;
   }
 
-  .post-content :global(img) {
-    max-width: 100%;
-    height: auto;
-    border-radius: 0.5rem;
-    margin: 2rem 0;
-  }
-
   .post-content :global(ul),
   .post-content :global(ol) {
     margin-bottom: 1.5rem;
-    padding-left: 2rem;
+    padding-left: 1.6rem;
   }
 
   .post-content :global(li) {
@@ -147,46 +259,135 @@ const formattedDate = new Date(date).toLocaleDateString('zh-TW', {
   }
 
   .post-content :global(blockquote) {
-    border-left: 4px solid #667eea;
-    padding-left: 1.5rem;
+    border-left: 3px solid var(--accent);
+    padding-left: 1.2rem;
     margin: 2rem 0;
-    color: #666;
-    font-style: italic;
+    color: var(--muted);
   }
 
-  .post-footer {
+  /* images break out of the text column */
+  .post-content :global(.single),
+  .post-content :global(.pair) {
+    width: min(1040px, calc(100vw - 2rem));
+    margin: 2.5rem 0 2.5rem 50%;
+    transform: translateX(-50%);
+  }
+
+  .post-content :global(.pair) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .post-content :global(figure) {
+    margin: 0;
+  }
+
+  .post-content :global(figure img) {
+    width: 100%;
+    height: auto;
+    display: block;
+    cursor: zoom-in;
+  }
+
+  .post-content :global(.pair) {
+    align-items: start;
+  }
+
+  /* portrait photos stay near the text width so they don't tower over the page */
+  .post-content :global(.single.portrait) {
+    width: min(540px, calc(100vw - 3rem));
+  }
+
+  .post-content :global(figcaption) {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 0.5rem;
+    line-height: 1.5;
+  }
+
+  .pager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
     margin-top: 4rem;
     padding-top: 2rem;
-    border-top: 1px solid #e9ecef;
+    border-top: 1px solid var(--line);
   }
 
-  .back-link {
-    color: #667eea;
+  .pager-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
     text-decoration: none;
-    font-weight: 600;
-    transition: color 0.3s;
   }
 
-  .back-link:hover {
-    color: #5568d3;
+  .pager-link.right {
+    text-align: right;
   }
 
-  @media (max-width: 768px) {
-    .post-header h1 {
-      font-size: 2rem;
+  .pager-link .label {
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+  }
+
+  .pager-link .t {
+    font-family: var(--serif);
+    line-height: 1.4;
+  }
+
+  .pager-link:hover .t {
+    color: var(--accent);
+  }
+
+  .back {
+    text-align: center;
+    margin-top: 2rem;
+  }
+
+  .back a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  #lightbox {
+    border: none;
+    background: transparent;
+    max-width: 96vw;
+    max-height: 96vh;
+    margin: auto;
+    color: #fff;
+    text-align: center;
+  }
+
+  #lightbox::backdrop {
+    background: rgba(15, 12, 10, 0.92);
+  }
+
+  #lightbox img {
+    max-width: 96vw;
+    max-height: 86vh;
+    object-fit: contain;
+  }
+
+  #lightbox .cap {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    opacity: 0.85;
+  }
+
+  @media (max-width: 600px) {
+    .post-content :global(.pair) {
+      grid-template-columns: 1fr;
     }
 
-    .post-meta {
-      flex-direction: column;
-      gap: 0.5rem;
+    .pager {
+      grid-template-columns: 1fr;
     }
 
-    .cover-image {
-      height: 250px;
-    }
-
-    .post-content {
-      font-size: 1rem;
+    .pager-link.right {
+      text-align: left;
     }
   }
 </style>

@@ -1,0 +1,47 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const all = (await getCollection('posts'))
+    .filter((p) => !p.data.draft)
+    .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+  const tags = new Set<string>();
+  all.forEach((p) => (p.data.tags ?? []).forEach((t) => tags.add(t)));
+  return [...tags].map((tag) => ({
+    params: { tag },
+    props: { tag, posts: all.filter((p) => (p.data.tags ?? []).includes(tag)) },
+  }));
+}
+
+const { tag, posts } = Astro.props;
+---
+
+<Layout title={`#${tag} - 旅行日記`}>
+  <div class="container">
+    <h1>#{tag}</h1>
+    <p class="count">共 {posts.length} 篇</p>
+    <div class="mosaic">
+      {posts.map((post) => <PostCard post={post} />)}
+    </div>
+    <p><a class="back" href="/travel-journal/posts">返回所有遊記</a></p>
+  </div>
+</Layout>
+
+<style>
+  h1 {
+    font-family: var(--serif);
+    font-size: 2.2rem;
+  }
+
+  .count {
+    color: var(--muted);
+    margin-bottom: 2rem;
+  }
+
+  .back {
+    color: var(--accent);
+    text-decoration: none;
+  }
+</style>

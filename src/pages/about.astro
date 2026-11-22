@@ -3,7 +3,7 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="關於 - 旅行日記">
-  <div class="about-page">
+  <div class="about-page container">
     <h1>關於這個旅行日記</h1>
     
     <div class="about-content">
@@ -59,8 +59,9 @@ import Layout from '../layouts/Layout.astro';
   }
 
   .about-page h1 {
+    font-family: var(--serif);
     font-size: 2.5rem;
-    color: #333;
+    color: var(--ink);
     margin-bottom: 2rem;
     text-align: center;
   }
@@ -68,8 +69,7 @@ import Layout from '../layouts/Layout.astro';
   .about-content {
     background: white;
     padding: 2rem;
-    border-radius: 1rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--line);
   }
 
   .about-content section {
@@ -81,8 +81,9 @@ import Layout from '../layouts/Layout.astro';
   }
 
   .about-content h2 {
+    font-family: var(--serif);
     font-size: 1.8rem;
-    color: #667eea;
+    color: var(--accent);
     margin-bottom: 1rem;
   }
 
@@ -106,7 +107,7 @@ import Layout from '../layouts/Layout.astro';
   }
 
   .about-content a {
-    color: #667eea;
+    color: var(--accent);
     text-decoration: none;
     font-weight: 600;
   }
@@ -123,16 +124,15 @@ import Layout from '../layouts/Layout.astro';
   .button {
     display: inline-block;
     padding: 0.75rem 2rem;
-    background: #667eea;
+    background: var(--accent);
     color: white;
     text-decoration: none;
-    border-radius: 0.5rem;
     font-weight: 600;
     transition: background 0.3s;
   }
 
   .button:hover {
-    background: #5568d3;
+    background: var(--accent-dark);
   }
 
   @media (max-width: 768px) {
